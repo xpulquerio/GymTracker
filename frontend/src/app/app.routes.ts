@@ -11,6 +11,8 @@ import { NotificationsComponent } from './pages/authenticaded/notifications/noti
 import { ProfileComponent } from './pages/authenticaded/profile/profile.component';
 import { TrainComponent } from './pages/authenticaded/train/train.component';
 import { CompletedWorkoutComponent } from './pages/authenticaded/completed-workout/completed-workout.component';
+import { PlannedWorkoutCreateComponent } from './pages/authenticaded/planned-workout-create/planned-workout-create.component';
+import { CatalogManagementComponent } from './pages/authenticaded/catalog-management/catalog-management.component';
 
 
 export const routes: Routes = [
@@ -28,9 +30,6 @@ export const routes: Routes = [
     path: 'profile', canActivate: [AuthGuard], component: ProfileComponent,
   },
   {
-    path: 'completed-workout/:id', canActivate: [AuthGuard], component: CompletedWorkoutComponent,
-  },
-  {
     path: '',
     canActivate: [AuthGuard],
     component: LayoutComponent,
@@ -42,10 +41,34 @@ export const routes: Routes = [
         path: 'train', component: TrainComponent
       },
       {
+        path: 'planned-workout/new', component: PlannedWorkoutCreateComponent
+      },
+      {
+        path: 'planned-workout/:id/edit', component: PlannedWorkoutCreateComponent
+      },
+      {
+        path: 'completed-workout/:id', component: CompletedWorkoutComponent
+      },
+      {
         path: 'history', component: HistoryComponent
       },
       {
         path: 'settings', component: SettingsComponent
+      },
+      {
+        path: 'settings/exercises',
+        component: CatalogManagementComponent,
+        data: { mode: 'exercises' }
+      },
+      {
+        path: 'settings/muscles',
+        component: CatalogManagementComponent,
+        data: { mode: 'muscles' }
+      },
+      {
+        path: 'settings/equipments',
+        component: CatalogManagementComponent,
+        data: { mode: 'equipments' }
       }
     ]
   },

@@ -32,9 +32,12 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
+        const isAuthRoute = req.url.includes('/auth/login');
+        const isCatalogRoute = req.url.includes('/api/catalog');
 
-        if (error.status === 401 || error.status === 403) {
-          // Token inválido, expirado ou backend reiniciado
+        // Catalogo exige autenticacao e hoje o backend pode responder 403 quando token esta invalido.
+        // Nesse caso, forca novo login para renovar sessao.
+        if (!isAuthRoute && (error.status === 401 || (error.status === 403 && isCatalogRoute))) {
           this.authService.logout();
           this.router.navigate(['/login']);
         }

@@ -11,4 +11,8 @@ public interface PlannedWorkoutItemRepository
         extends JpaRepository<PlannedWorkoutItem, Long> {
 
     List<PlannedWorkoutItem> findByPlannedWorkoutOrderBySequence(PlannedWorkout plannedWorkout);
+
+    List<PlannedWorkoutItem> findByPlannedWorkoutIdOrderBySequence(Long plannedWorkoutId);
+
+    boolean existsByExerciseId(Long exerciseId);
 }

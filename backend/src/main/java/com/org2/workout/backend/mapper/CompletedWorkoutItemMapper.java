@@ -17,6 +17,7 @@ public class CompletedWorkoutItemMapper {
         dto.setId(item.getId());
         dto.setExerciseId(item.getExercise().getId());
         dto.setExerciseDescription(item.getExercise().getDescription());
+        dto.setExerciseType(item.getExercise().getType().name());
         dto.setWeight(item.getWeight());
         dto.setRepetitions(item.getRepititions());
         dto.setDurationSeconds(item.getDurationSeconds());

@@ -4,6 +4,7 @@ export interface CompletedWorkoutItem {
 
   exerciseId: number;
   exerciseDescription: string;
+  exerciseType?: string;
 
   repetitions?: number;
   weight?: number;          // kg

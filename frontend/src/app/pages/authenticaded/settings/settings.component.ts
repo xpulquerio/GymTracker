@@ -1,32 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Account } from '../../../models/account.model';
+﻿import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-settings',
-  imports: [FormsModule],
+  imports: [RouterModule],
   standalone: true,
   templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.css'],
+  styleUrls: ['./settings.component.css']
 })
-
-export class SettingsComponent implements OnInit {
-  // data
-  page_name = "Configurações";
-  // forms
-  accountName = '';
-  accountList: Account[] = [];
-  loadingAccounts = false;
-  // controla o pop-up
-  isAccountCreateOpen = false;
-  
-  constructor(
-
-      // private readonly accountService: AccountService,
-  
-    ) {}
-
-  ngOnInit(): void {
-    //vsf
-  }
-}
+export class SettingsComponent {}

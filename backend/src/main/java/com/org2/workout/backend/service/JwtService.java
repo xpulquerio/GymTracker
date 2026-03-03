@@ -2,23 +2,33 @@ package com.org2.workout.backend.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.org2.workout.backend.model.User;
+
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 @Service
 public class JwtService {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key;
+    private final long expirationMs;
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
+    public JwtService(
+            @Value("${jwt.secret}") String jwtSecret,
+            @Value("${jwt.expiration-ms:3600000}") long expirationMs) {
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        this.expirationMs = expirationMs;
+    }
+
     public String generateToken(String username) {
-        Date exp = new Date(System.currentTimeMillis() + 1000 * 60 * 60);
+        Date exp = new Date(System.currentTimeMillis() + expirationMs);
         log.info("EXPIRA EM: {}", exp);
         return Jwts.builder()
                 .setSubject(username)

@@ -1,1 +1,32 @@
-Settings
+﻿<div class="px-4 pt-3 pb-24 space-y-4">
+  <div>
+    <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white">Configuracoes</h1>
+    <p class="text-xs text-slate-500 dark:text-text-secondary">Gerencie o catalogo principal do app.</p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <a
+      routerLink="/settings/exercises"
+      class="settings-card rounded-xl border border-white/5 bg-card-dark p-4 flex flex-col gap-2 hover:border-primary/40 transition">
+      <span class="material-symbols-outlined text-2xl text-primary">fitness_center</span>
+      <h2 class="text-base font-bold text-white">Exercicios</h2>
+      <p class="text-xs text-slate-400">Listar, criar, editar e remover exercicios.</p>
+    </a>
+
+    <a
+      routerLink="/settings/muscles"
+      class="settings-card rounded-xl border border-white/5 bg-card-dark p-4 flex flex-col gap-2 hover:border-primary/40 transition">
+      <span class="material-symbols-outlined text-2xl text-primary">self_improvement</span>
+      <h2 class="text-base font-bold text-white">Musculos</h2>
+      <p class="text-xs text-slate-400">Gerenciar grupos musculares cadastrados.</p>
+    </a>
+
+    <a
+      routerLink="/settings/equipments"
+      class="settings-card rounded-xl border border-white/5 bg-card-dark p-4 flex flex-col gap-2 hover:border-primary/40 transition">
+      <span class="material-symbols-outlined text-2xl text-primary">construction</span>
+      <h2 class="text-base font-bold text-white">Ferramentas</h2>
+      <p class="text-xs text-slate-400">CRUD de equipamentos usados nos exercicios.</p>
+    </a>
+  </div>
+</div>

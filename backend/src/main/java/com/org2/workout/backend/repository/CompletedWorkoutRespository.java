@@ -13,4 +13,8 @@ public interface CompletedWorkoutRespository extends JpaRepository<CompletedWork
 
     Optional<CompletedWorkout> findById(Long id);
 
+    Optional<CompletedWorkout> findByIdAndUser(Long id, User user);
+
+    Optional<CompletedWorkout> findFirstByUserAndFinishedAtIsNullOrderByStartedAtDesc(User user);
+
 }

@@ -1,81 +1,153 @@
 <app-calendar-bar></app-calendar-bar>
 
-<div class="px-4 pb-2 mt-2">
-  Train
-  @if (plannedWorkouts$ | async; as workouts) {
+<div class="px-4 pb-24 mt-2 space-y-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-extrabold text-slate-900 dark:text-white">Treinos</h1>
+      <p class="text-xs text-slate-500 dark:text-text-secondary">Escolha um treino planejado para comecar agora.</p>
+    </div>
 
-  <!-- CONTAINER COM ESPAÇO ENTRE CARDS -->
+    <div class="flex items-center gap-2">
+      <button
+        class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 transition"
+        (click)="loadPlannedWorkouts()">
+        Atualizar
+      </button>
+      <button
+        class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white hover:bg-orange-600 transition"
+        routerLink="/planned-workout/new">
+        Criar
+      </button>
+    </div>
+  </div>
+
+  <button
+    class="w-full py-3 rounded-xl text-sm font-bold bg-emerald-500 text-white hover:bg-emerald-600 transition disabled:opacity-70"
+    [disabled]="startingWorkoutId !== null"
+    (click)="startManualWorkout()">
+    @if (startingWorkoutId === -1) {
+    Iniciando treino livre...
+    } @else {
+    Iniciar treino livre
+    }
+  </button>
+
+  @if (errorMessage) {
+  <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300">
+    {{ errorMessage }}
+  </div>
+  }
+
+  @if (loading) {
   <div class="space-y-3">
-
-    @for (workout of workouts; track workout.id) {
-
-    <div class="group relative flex flex-col gap-3 bg-white dark:bg-card-dark
-                 p-4 rounded-xl border border-gray-100 dark:border-white/5
-                 shadow-sm active:scale-[0.98] transition-all cursor-pointer">
-
-      <!-- HEADER -->
+    @for (item of [1, 2, 3]; track item) {
+    <div class="h-24 rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse"></div>
+    }
+  </div>
+  } @else if (plannedWorkouts.length === 0) {
+  <div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/20 bg-white dark:bg-card-dark p-6 text-center space-y-3">
+    <div class="mx-auto h-12 w-12 rounded-full bg-primary/15 text-primary flex items-center justify-center">
+      <span class="material-symbols-outlined">fitness_center</span>
+    </div>
+    <h2 class="text-base font-bold text-slate-900 dark:text-white">Nenhum treino planejado</h2>
+    <p class="text-sm text-slate-500 dark:text-text-secondary">
+      Quando houver treinos ativos, eles aparecerao aqui para iniciar com um toque.
+    </p>
+    <button
+      class="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition"
+      (click)="loadPlannedWorkouts()">
+      Tentar novamente
+    </button>
+  </div>
+  } @else {
+  <div class="space-y-3">
+    @for (workout of plannedWorkouts; track workout.id) {
+    <div class="group relative flex flex-col gap-3 bg-white dark:bg-card-dark p-4 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm transition-all cursor-pointer"
+      (click)="toggleWorkoutDetails(workout.id)">
       <div class="flex justify-between items-start">
         <div class="flex gap-4">
-          <div class="flex items-center justify-center rounded-lg
-                       bg-primary/10 shrink-0 size-12 text-primary">
-            <span class="material-symbols-outlined text-[24px]">
-              fitness_center
-            </span>
+          <div class="flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12 text-primary">
+            <span class="material-symbols-outlined text-[24px]">fitness_center</span>
           </div>
 
           <div class="flex flex-col">
             <h4 class="text-base font-bold text-slate-900 dark:text-white leading-tight mb-1">
-              {{ workout.description || 'Workout' }}
+              {{ workout.description || 'Treino' }}
             </h4>
-
             <p class="text-xs font-medium text-slate-500 dark:text-text-secondary">
-              xxx
+              Toque para ver os exercicios
             </p>
           </div>
         </div>
 
-        <div class="flex size-7 items-center justify-center rounded-full
-                        bg-gray-100 dark:bg-white/10
-                        text-slate-400 dark:text-text-secondary">
+        <div class="flex size-7 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 text-slate-400 dark:text-text-secondary">
           <span class="material-symbols-outlined text-[18px]">
-            chevron_right
+            {{ expandedWorkoutId === workout.id ? 'expand_less' : 'expand_more' }}
           </span>
         </div>
       </div>
 
-      <!-- DIVIDER -->
+      @if (expandedWorkoutId === workout.id) {
       <div class="h-px bg-gray-100 dark:bg-white/5 w-full"></div>
 
-      <!-- FOOTER -->
-      <div class="flex items-center justify-between gap-4">
-
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-slate-400 dark:text-text-secondary text-[18px]">
-            timer
-          </span>
-          <span class="text-sm font-medium text-slate-700 dark:text-gray-300">
-            --
+      @if (loadingItemsWorkoutId === workout.id) {
+      <div class="h-14 rounded-lg bg-slate-100 dark:bg-white/5 animate-pulse"></div>
+      } @else {
+      <div class="space-y-2">
+        @for (item of workoutItems[workout.id] || []; track item.id) {
+        <div class="rounded-lg bg-slate-50 dark:bg-white/5 px-3 py-2 flex items-center justify-between text-xs">
+          <span class="font-semibold text-slate-700 dark:text-slate-200">{{ item.sequence }}. {{ item.exerciseDescription }}</span>
+          <span class="text-slate-500 dark:text-text-secondary">
+            {{ item.repetitions || '-' }} reps | {{ item.distance || '-' }} dist | {{ item.durationSeconds || '-' }}s
           </span>
         </div>
+        }
 
-        <!-- BOTÃO START -->
-        <button class="flex items-center gap-1 px-3 py-1.5
-           rounded-lg text-sm font-semibold
-           bg-primary text-white
-           hover:bg-primary/90
-           active:scale-95 transition" (click)="startWorkout(workout.id); $event.stopPropagation()">
-          <span class="material-symbols-outlined text-[18px]">
-            play_arrow
-          </span>
-          Start
-        </button>
-
+        @if ((workoutItems[workout.id] || []).length === 0) {
+        <div class="text-xs text-slate-500 dark:text-text-secondary">Sem exercicios neste treino.</div>
+        }
       </div>
+      }
+      }
 
+      <div class="h-px bg-gray-100 dark:bg-white/5 w-full"></div>
 
+      <div class="flex items-center justify-between gap-4">
+        <span class="text-sm font-medium text-slate-700 dark:text-gray-300">Treino #{{ workout.id }}</span>
+
+        <div class="flex items-center gap-2">
+          <button
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 transition"
+            (click)="editPlannedWorkout(workout.id); $event.stopPropagation()">
+            Editar
+          </button>
+          <button
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600 transition"
+            (click)="deletePlannedWorkout(workout.id); $event.stopPropagation()">
+            Remover
+          </button>
+          <button
+            class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold bg-primary text-white hover:bg-primary/90 active:scale-95 transition disabled:opacity-70 disabled:cursor-not-allowed"
+            [disabled]="startingWorkoutId !== null"
+            (click)="startWorkout(workout.id); $event.stopPropagation()">
+            <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+            @if (startingWorkoutId === workout.id) {
+            Iniciando...
+            } @else {
+            Iniciar
+            }
+          </button>
+        </div>
+      </div>
     </div>
-
     }
   </div>
+
+  <button
+    class="w-full mt-2 py-3 rounded-xl text-sm font-bold bg-slate-900 text-white hover:bg-black transition dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+    [disabled]="startingWorkoutId !== null"
+    (click)="startFirstWorkout()">
+    Iniciar primeiro treino da lista
+  </button>
   }
 </div>

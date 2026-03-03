@@ -1,100 +1,153 @@
-<div class="px-4 pb-2 mt-2">
-    
-@if (completedWorkout$ | async; as workout) {
+<div class="px-4 pb-24 mt-2 space-y-4">
+  @if (loading) {
+  <div class="space-y-3">
+    @for (s of [1,2,3]; track s) {
+    <div class="h-20 rounded-xl bg-slate-100 dark:bg-white/5 animate-pulse"></div>
+    }
+  </div>
+  } @else if (workout) {
 
-
-  <div class="px-4 py-4 space-y-4">
-
-    <h2 class="text-xl font-bold">
-      {{ workout.description || 'Treino em andamento' }}
-    </h2>
-
-    @for (item of workout.items; let i = $index; track item.id) {
-
-  <div
-    class="group relative bg-primary/10 dark:bg-primary/5
-           rounded-lg mb-2 overflow-hidden transition-all duration-200">
-
-    <!-- Barra lateral -->
-    <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
-
-    <!-- Grid -->
-    <div class="grid grid-cols-[24px_repeat(5,1fr)_40px]
-            gap-5 p-5 items-center">
-
-      <!-- Nº do set -->
-      <div class="text-sm font-bold text-primary text-center">
-        {{ i + 1 }}
+  <div class="rounded-xl bg-white dark:bg-card-dark border border-gray-100 dark:border-white/5 p-4 space-y-2">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ workout.description || 'Treino em andamento' }}</h2>
+        <p class="text-xs text-slate-500 dark:text-text-secondary">
+          @if (isFinished) {
+          Finalizado em {{ workout.finishedAt | date:'dd/MM HH:mm' }}
+          } @else {
+          Em progresso desde {{ workout.startedAt | date:'dd/MM HH:mm' }}
+          }
+        </p>
       </div>
-
-      
-      <!-- Descrição -->
-      <div class="text-xs text-slate-500 dark:text-slate-400 pl-2">
-        {{item.exerciseDescription}} {{ item.weight || 0 }}kg x {{ item.repetitions || 0 }}
-      </div>
-
-      <!-- Peso -->
-      <div class="relative">
-        <input
-          class="w-full bg-white dark:bg-input-bg border-none
-                 rounded-md text-center font-bold
-                 text-slate-300 dark:text-white
-                 py-2 focus:ring-1 focus:ring-primary shadow-sm"
-          type="number"
-          [value]="item.weight"
-          disabled />
-      </div>
-
-      <!-- Reps -->
-      <div class="relative">
-        <input
-          class="w-full bg-white dark:bg-input-bg border-none
-                 rounded-md text-center font-bold
-                 text-slate-300 dark:text-white
-                 py-2 focus:ring-1 focus:ring-primary shadow-sm"
-          type="number"
-          [value]="item.repetitions"
-          disabled />
-      </div>
-      <!-- Reps -->
-      <div class="relative">
-        <input
-          class="w-full bg-white dark:bg-input-bg border-none
-                 rounded-md text-center font-bold
-                 text-slate-300 dark:text-white
-                 py-2 focus:ring-1 focus:ring-primary shadow-sm"
-          type="number"
-          [value]="item.distance"
-          disabled />
-      </div>
-      <!-- Reps -->
-      <div class="relative">
-        <input
-          class="w-full bg-white dark:bg-input-bg border-none
-                 rounded-md text-center font-bold
-                 text-slate-300 dark:text-white
-                 py-2 focus:ring-1 focus:ring-primary shadow-sm"
-          type="number"
-          [value]="item.durationSeconds"
-          disabled />
-      </div>
-
-      <!-- Status -->
-      <button
-        class="size-10 flex items-center justify-center
-               rounded-lg bg-primary text-background-dark
-               shadow-sm cursor-default">
-        <span class="material-symbols-outlined font-bold">
-          check
-        </span>
-      </button>
-
+      <span class="px-2 py-1 rounded-full text-[10px] font-bold"
+        [class]="isFinished ? 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-white' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'">
+        {{ isFinished ? 'FINALIZADO' : 'EM PROGRESSO' }}
+      </span>
     </div>
-  </div>
-}
 
+    @if (successMessage) {
+    <div class="text-xs text-emerald-600 dark:text-emerald-300">{{ successMessage }}</div>
+    }
+
+    @if (infoMessage) {
+    <div class="text-xs text-blue-600 dark:text-blue-300">{{ infoMessage }}</div>
+    }
+
+    @if (errorMessage) {
+    <div class="text-xs text-red-600 dark:text-red-300">{{ errorMessage }}</div>
+    }
   </div>
-}
+
+  <div class="space-y-2">
+    @for (item of workout.items || []; let i = $index; track item.id) {
+    <div class="rounded-xl bg-white dark:bg-card-dark border border-gray-100 dark:border-white/5 p-3 space-y-3">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-bold text-slate-800 dark:text-white">{{ i + 1 }}. {{ item.exerciseDescription }}</p>
+        <p class="text-[10px] text-slate-500 dark:text-text-secondary">{{ item.exerciseType || '' }}</p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+          type="number" min="0" [disabled]="isFinished" [(ngModel)]="item.weight" placeholder="Peso" />
+        <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+          type="number" min="0" [disabled]="isFinished" [(ngModel)]="item.repetitions" placeholder="Reps" />
+        <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+          type="number" min="0" step="0.01" [disabled]="isFinished" [(ngModel)]="item.distance" placeholder="Distancia" />
+        <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+          type="number" min="0" [disabled]="isFinished" [(ngModel)]="item.durationSeconds" placeholder="Duracao(s)" />
+      </div>
+
+      @if (!isFinished) {
+      <button
+        class="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition disabled:opacity-60"
+        [disabled]="saving"
+        title="Salvar item"
+        aria-label="Salvar item"
+        (click)="saveItem(item.id, { repetitions: item.repetitions, weight: item.weight, distance: item.distance, durationSeconds: item.durationSeconds })">
+        <span class="material-symbols-outlined text-[18px]">save</span>
+      </button>
+      <button
+        class="ml-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition disabled:opacity-60"
+        [disabled]="saving"
+        title="Duplicar como nova serie"
+        aria-label="Duplicar como nova serie"
+        (click)="registerSetFromItem(item)">
+        <span class="material-symbols-outlined text-[18px]">content_copy</span>
+      </button>
+      }
+    </div>
+    }
+
+    @if ((workout.items || []).length === 0) {
+    <div class="rounded-xl bg-white dark:bg-card-dark border border-dashed border-gray-300 dark:border-white/20 p-4 text-sm text-slate-500 dark:text-text-secondary">
+      Sem exercicios neste treino ainda.
+    </div>
+    }
+  </div>
+
+  @if (!isFinished) {
+  <div class="rounded-xl bg-white dark:bg-card-dark border border-gray-100 dark:border-white/5 p-4 space-y-3">
+    <h3 class="text-sm font-bold text-slate-800 dark:text-white">Adicionar exercicio</h3>
+
+    <select class="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2 text-sm"
+      [(ngModel)]="addItemForm.exerciseId">
+      <option [ngValue]="undefined">Selecione o exercicio</option>
+      @for (exercise of exercises; track exercise.id) {
+      <option [ngValue]="exercise.id">{{ exercise.description }} ({{ exercise.type }})</option>
+      }
+    </select>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+        type="number" min="0" [(ngModel)]="addItemForm.weight" placeholder="Peso" />
+      <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+        type="number" min="0" [(ngModel)]="addItemForm.repetitions" placeholder="Reps" />
+      <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+        type="number" min="0" step="0.01" [(ngModel)]="addItemForm.distance" placeholder="Distancia" />
+      <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+        type="number" min="0" [(ngModel)]="addItemForm.durationSeconds" placeholder="Duracao(s)" />
+    </div>
+
+    <button
+      class="px-3 py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition disabled:opacity-60"
+      [disabled]="saving"
+      (click)="addExerciseItem()">
+      Adicionar no treino
+    </button>
+  </div>
+
+  <div class="rounded-xl bg-white dark:bg-card-dark border border-gray-100 dark:border-white/5 p-4 space-y-3">
+    <h3 class="text-sm font-bold text-slate-800 dark:text-white">Finalizar treino</h3>
+    <textarea
+      class="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2 text-sm"
+      rows="3"
+      [(ngModel)]="notes"
+      placeholder="Notas opcionais"></textarea>
+
+    <button
+      class="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition disabled:opacity-60"
+      [disabled]="finishing"
+      (click)="finishWorkout()">
+      @if (finishing) {
+      Finalizando...
+      } @else {
+      Finalizar treino
+      }
+    </button>
+
+    <button
+      class="w-full py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition disabled:opacity-60"
+      [disabled]="finishing"
+      (click)="cancelWorkout()">
+      Cancelar treino em andamento
+    </button>
+  </div>
+  } @else {
+  <button
+    class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-black transition"
+    (click)="goHistory()">
+    Ir para historico
+  </button>
+  }
+  }
 </div>
-
-
