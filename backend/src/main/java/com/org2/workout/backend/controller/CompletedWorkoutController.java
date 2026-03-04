@@ -87,6 +87,16 @@ public class CompletedWorkoutController {
         return ResponseEntity.ok(dto);
     }
 
+    @DeleteMapping("/{completedWorkoutId}/items/{itemId}")
+    public ResponseEntity<CompletedWorkoutDTO> removeItem(
+            @PathVariable Long completedWorkoutId,
+            @PathVariable Long itemId,
+            @AuthenticationPrincipal User user) {
+        log.info("DELETE /api/completed-workout/{completedWorkoutId}/items/{itemId}");
+        CompletedWorkoutDTO dto = completedWorkoutService.removeItem(completedWorkoutId, itemId, user);
+        return ResponseEntity.ok(dto);
+    }
+
     @PostMapping("/{completedWorkoutId}/finish")
     public ResponseEntity<CompletedWorkoutDTO> finish(
             @PathVariable Long completedWorkoutId,

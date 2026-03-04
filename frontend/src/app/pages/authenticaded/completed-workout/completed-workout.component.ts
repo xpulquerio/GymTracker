@@ -28,6 +28,7 @@ export class CompletedWorkoutComponent implements OnInit {
   successMessage = '';
   infoMessage = '';
   notes = '';
+  editingItemIds = new Set<number>();
 
   exercises: ExerciseOption[] = [];
   addItemForm: CompletedWorkoutItemUpsertRequest = {
@@ -82,6 +83,7 @@ export class CompletedWorkoutComponent implements OnInit {
           this.zone.run(() => {
             this.workout = workout;
             this.notes = workout.notes || '';
+            this.editingItemIds.clear();
             this.cdr.detectChanges();
           });
         },
@@ -139,6 +141,7 @@ export class CompletedWorkoutComponent implements OnInit {
             this.workout = updated;
             this.saving = false;
             this.successMessage = 'Item salvo.';
+            this.editingItemIds.delete(itemId);
             this.cdr.detectChanges();
           });
         },
@@ -150,6 +153,29 @@ export class CompletedWorkoutComponent implements OnInit {
           });
         }
       });
+  }
+
+  isItemEditing(itemId: number): boolean {
+    return this.editingItemIds.has(itemId);
+  }
+
+  canEditItem(item: { id: number; performed?: boolean }): boolean {
+    return !!item.performed && !this.isItemEditing(item.id);
+  }
+
+  isItemLocked(item: { id: number; performed?: boolean }): boolean {
+    return !!item.performed && !this.isItemEditing(item.id);
+  }
+
+  enableEditItem(itemId: number): void {
+    if (this.isFinished) {
+      return;
+    }
+    this.editingItemIds.add(itemId);
+  }
+
+  cancelEditItem(itemId: number): void {
+    this.editingItemIds.delete(itemId);
   }
 
   addExerciseItem(): void {
@@ -257,6 +283,38 @@ export class CompletedWorkoutComponent implements OnInit {
           this.zone.run(() => {
             this.saving = false;
             this.errorMessage = this.getApiErrorMessage(error, 'Nao foi possivel registrar a serie.');
+            this.cdr.detectChanges();
+          });
+        }
+      });
+  }
+
+  removeItem(itemId: number): void {
+    if (!this.workout || this.isFinished || this.saving) {
+      return;
+    }
+
+    this.saving = true;
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    this.completedWorkoutService
+      .removeItem(this.workout.id, itemId)
+      .pipe(take(1))
+      .subscribe({
+        next: (updated) => {
+          this.zone.run(() => {
+            this.workout = updated;
+            this.saving = false;
+            this.successMessage = 'Serie removida.';
+            this.editingItemIds.delete(itemId);
+            this.cdr.detectChanges();
+          });
+        },
+        error: (error: HttpErrorResponse) => {
+          this.zone.run(() => {
+            this.saving = false;
+            this.errorMessage = this.getApiErrorMessage(error, 'Nao foi possivel remover a serie.');
             this.cdr.detectChanges();
           });
         }

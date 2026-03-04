@@ -10,6 +10,7 @@ export interface CompletedWorkoutItem {
   weight?: number;          // kg
   distance?: number;        // km ou m
   durationSeconds?: number; // cardio
+  performed?: boolean;
 
   sequence?: number;
 }

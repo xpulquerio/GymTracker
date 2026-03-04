@@ -16,4 +16,5 @@ public class CompletedWorkoutItemDTO {
     private BigDecimal weight;
     private BigDecimal distance;
     private Long durationSeconds;
+    private Boolean performed;
 }

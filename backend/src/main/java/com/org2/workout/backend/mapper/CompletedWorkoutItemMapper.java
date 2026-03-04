@@ -22,6 +22,7 @@ public class CompletedWorkoutItemMapper {
         dto.setRepetitions(item.getRepititions());
         dto.setDurationSeconds(item.getDurationSeconds());
         dto.setDistance(item.getDistance());
+        dto.setPerformed(Boolean.TRUE.equals(item.getPerformed()));
 
         return dto;
     }

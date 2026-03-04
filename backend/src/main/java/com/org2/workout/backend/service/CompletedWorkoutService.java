@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.org2.workout.backend.dto.workout.CompletedWorkoutDTO;
 import com.org2.workout.backend.dto.workout.CompletedWorkoutItemUpsertDTO;
@@ -25,6 +26,9 @@ import com.org2.workout.backend.repository.ExerciseRepository;
 import com.org2.workout.backend.repository.PlannedWorkoutItemRepository;
 import com.org2.workout.backend.repository.PlannedWorkoutRepository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 @Service
 public class CompletedWorkoutService {
     private final CompletedWorkoutRespository completedWorkoutRepository;
@@ -34,6 +38,9 @@ public class CompletedWorkoutService {
     private final ExerciseRepository exerciseRepository;
     private final WorkoutDayService workoutDayService;
     private static final Logger log = LoggerFactory.getLogger(CompletedWorkoutService.class);
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public CompletedWorkoutService(
             CompletedWorkoutRespository completedWorkoutRepository,
@@ -108,6 +115,7 @@ public class CompletedWorkoutService {
             item.setDistance(planned.getDistance());
             item.setDurationSeconds(planned.getDurationSeconds());
             item.setWeight(null);
+            item.setPerformed(false);
 
             completedWorkoutItemRepository.save(item);
         }
@@ -138,6 +146,7 @@ public class CompletedWorkoutService {
         return toDTO(completedWorkout);
     }
 
+    @Transactional
     public CompletedWorkoutDTO updateItem(Long workoutId, Long itemId, CompletedWorkoutItemUpsertDTO request, User user) {
         CompletedWorkout workout = loadOwnedWorkout(workoutId, user);
 
@@ -150,11 +159,15 @@ public class CompletedWorkoutService {
                 .orElseThrow(() -> new RuntimeException("Item do treino nao encontrado"));
 
         applyItemValues(item, request);
-        completedWorkoutItemRepository.save(item);
+        item.setPerformed(true);
+        completedWorkoutItemRepository.saveAndFlush(item);
+        entityManager.flush();
+        entityManager.clear();
 
-        return toDTO(workout);
+        return findById(workoutId, user);
     }
 
+    @Transactional
     public CompletedWorkoutDTO addItem(Long workoutId, CompletedWorkoutItemUpsertDTO request, User user) {
         CompletedWorkout workout = loadOwnedWorkout(workoutId, user);
 
@@ -173,10 +186,33 @@ public class CompletedWorkoutService {
         item.setCompletedWorkout(workout);
         item.setExercise(exercise);
         applyItemValues(item, request);
+        boolean isFreeWorkout = workout.getPlannedWorkout() == null;
+        item.setPerformed(isFreeWorkout || hasAnyExecutionValue(request));
 
-        completedWorkoutItemRepository.save(item);
+        completedWorkoutItemRepository.saveAndFlush(item);
+        entityManager.flush();
+        entityManager.clear();
 
-        return toDTO(workout);
+        return findById(workoutId, user);
+    }
+
+    @Transactional
+    public CompletedWorkoutDTO removeItem(Long workoutId, Long itemId, User user) {
+        CompletedWorkout workout = loadOwnedWorkout(workoutId, user);
+
+        if (workout.getFinishedAt() != null) {
+            throw new RuntimeException("Treino ja finalizado");
+        }
+
+        CompletedWorkoutItem item = completedWorkoutItemRepository
+                .findByIdAndCompletedWorkout(itemId, workout)
+                .orElseThrow(() -> new RuntimeException("Item do treino nao encontrado"));
+
+        completedWorkoutItemRepository.delete(item);
+        completedWorkoutItemRepository.flush();
+        entityManager.clear();
+
+        return findById(workoutId, user);
     }
 
     public CompletedWorkoutDTO finish(Long workoutId, FinishWorkoutRequestDTO request, User user) {
@@ -242,6 +278,17 @@ public class CompletedWorkoutService {
         if (request.getDurationSeconds() != null) {
             item.setDurationSeconds(request.getDurationSeconds());
         }
+    }
+
+    private boolean hasAnyExecutionValue(CompletedWorkoutItemUpsertDTO request) {
+        if (request == null) {
+            return false;
+        }
+
+        return request.getRepetitions() != null
+                || request.getWeight() != null
+                || request.getDistance() != null
+                || request.getDurationSeconds() != null;
     }
 
     private CompletedWorkoutDTO toDTO(CompletedWorkout workout) {

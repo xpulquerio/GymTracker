@@ -43,38 +43,100 @@
     <div class="rounded-xl bg-white dark:bg-card-dark border border-gray-100 dark:border-white/5 p-3 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-sm font-bold text-slate-800 dark:text-white">{{ i + 1 }}. {{ item.exerciseDescription }}</p>
-        <p class="text-[10px] text-slate-500 dark:text-text-secondary">{{ item.exerciseType || '' }}</p>
+        <div class="flex items-center gap-2">
+          <span
+            class="px-2 py-1 rounded-full text-[10px] font-bold"
+            [class]="item.performed ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'">
+       
+            {{ item.performed ? 'REALIZADO' : 'PENDENTE' }}
+          </span>
+          <!-- <p class="text-[10px] text-slate-500 dark:text-text-secondary">{{ item.exerciseType || '' }}</p> -->
+        </div>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
-          type="number" min="0" [disabled]="isFinished" [(ngModel)]="item.weight" placeholder="Peso" />
-        <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
-          type="number" min="0" [disabled]="isFinished" [(ngModel)]="item.repetitions" placeholder="Reps" />
-        <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
-          type="number" min="0" step="0.01" [disabled]="isFinished" [(ngModel)]="item.distance" placeholder="Distancia" />
-        <input class="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
-          type="number" min="0" [disabled]="isFinished" [(ngModel)]="item.durationSeconds" placeholder="Duracao(s)" />
-      </div>
+      <div
+        class="flex flex-wrap items-center gap-2"
+        [class.opacity-70]="isItemLocked(item)">
+        @if(item.exerciseType === 'STRENGTH') {
+        <input class="w-[90px] rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+          type="number" min="0" [disabled]="isFinished || isItemLocked(item)" [(ngModel)]="item.weight" placeholder="Peso" />
+        <input class="w-[90px] rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+          type="number" min="0" [disabled]="isFinished || isItemLocked(item)" [(ngModel)]="item.repetitions" placeholder="Reps" /> } 
+          @else if(item.exerciseType === 'CARDIO') {
+        <input class="w-[110px] rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+          type="number" min="0" step="0.01" [disabled]="isFinished || isItemLocked(item)" [(ngModel)]="item.distance" placeholder="Distancia" />
+        <input class="w-[110px] rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-2 py-2 text-xs"
+          type="number" min="0" [disabled]="isFinished || isItemLocked(item)" [(ngModel)]="item.durationSeconds" placeholder="Duracao(s)" />
+          }
+        @if (!isFinished) {
+          @if (canEditItem(item)) {
+          <button
+            class="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-slate-700 text-white hover:bg-slate-800 transition disabled:opacity-60"
+            [disabled]="saving"
+            title="Editar serie"
+            aria-label="Editar serie"
+            (click)="enableEditItem(item.id)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          </button>
+          } @else {
+          <button
+            class="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-primary text-white hover:bg-primary/90 transition disabled:opacity-60"
+            [disabled]="saving"
+            title="Salvar item"
+            aria-label="Salvar item"
+            (click)="saveItem(item.id, { repetitions: item.repetitions, weight: item.weight, distance: item.distance, durationSeconds: item.durationSeconds })">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+              <path d="M17 21v-8H7v8" />
+              <path d="M7 3v5h8" />
+            </svg>
+          </button>
+          }
 
-      @if (!isFinished) {
-      <button
-        class="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition disabled:opacity-60"
-        [disabled]="saving"
-        title="Salvar item"
-        aria-label="Salvar item"
-        (click)="saveItem(item.id, { repetitions: item.repetitions, weight: item.weight, distance: item.distance, durationSeconds: item.durationSeconds })">
-        <span class="material-symbols-outlined text-[18px]">save</span>
-      </button>
-      <button
-        class="ml-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition disabled:opacity-60"
-        [disabled]="saving"
-        title="Duplicar como nova serie"
-        aria-label="Duplicar como nova serie"
-        (click)="registerSetFromItem(item)">
-        <span class="material-symbols-outlined text-[18px]">content_copy</span>
-      </button>
-      }
+          <button
+            class="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition disabled:opacity-60"
+            [disabled]="saving"
+            title="Duplicar como nova serie"
+            aria-label="Duplicar como nova serie"
+            (click)="registerSetFromItem(item)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+
+          <button
+            class="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-60"
+            [disabled]="saving"
+            title="Remover serie"
+            aria-label="Remover serie"
+            (click)="removeItem(item.id)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+            </svg>
+          </button>
+
+          @if (isItemEditing(item.id)) {
+          <button
+            class="h-9 w-9 inline-flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition"
+            title="Cancelar edicao"
+            aria-label="Cancelar edicao"
+            (click)="cancelEditItem(item.id)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+          }
+        }
+      </div>
     </div>
     }
 

@@ -71,6 +71,12 @@ export class CompletedWorkoutService {
     );
   }
 
+  removeItem(completedWorkoutId: number, itemId: number): Observable<CompletedWorkout> {
+    return this.http.delete<CompletedWorkout>(
+      `${this.apiUrl}/api/completed-workout/${completedWorkoutId}/items/${itemId}`
+    );
+  }
+
   finish(completedWorkoutId: number, notes?: string): Observable<CompletedWorkout> {
     return this.http.post<CompletedWorkout>(
       `${this.apiUrl}/api/completed-workout/${completedWorkoutId}/finish`,

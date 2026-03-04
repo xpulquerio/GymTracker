@@ -39,4 +39,7 @@ public class CompletedWorkoutItem {
 
     @Column(name = "duration_seconds")
     private Long durationSeconds;
+
+    @Column(columnDefinition = "boolean default false")
+    private Boolean performed = false;
 }
